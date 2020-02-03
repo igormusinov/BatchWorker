@@ -5,7 +5,7 @@ properties:
   containers:
   - name: $USER-gpucontainer
     properties:
-      image: imusinov/mnist
+      image: tensorflow/tensorflow:1.12.0-gpu-py3
       command: ["/bin/bash", "-c", "cd /data && python -c 'mnist.py' |& /data/log.txt"]
       resources:
         requests:
@@ -14,9 +14,9 @@ properties:
           gpu:
             count: 1
             sku: K80
-  volumeMounts:
-    - mountPath: /data
-      name: filesharevolume
+      volumeMounts:
+        - mountPath: /data
+          name: filesharevolume
   volumes:
     - name: filesharevolume
       azureFile:
