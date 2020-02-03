@@ -1,0 +1,28 @@
+additional_properties: {}
+apiVersion: '2018-10-01'
+name: $USER-gpucontainergroup
+properties:
+  containers:
+  - name: $USER-gpucontainer
+    properties:
+      image: tensorflow/tensorflow:1.12.0-py3
+      command: ["/bin/bash", "-c", "cd /data/$USER/mnist && python mnist.py |& tee /data/log.txt"]
+      #command: ["/bin/bash", "-c", "sleep 10000"]
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 16
+          gpu:
+            count: 1
+            sku: K80
+      volumeMounts:
+        - mountPath: /data
+          name: filesharevolume
+  volumes:
+    - name: filesharevolume
+      azureFile:
+        sharename: $ACI_PERS_SHARE_NAME
+        storageAccountName: $ACI_PERS_STORAGE_ACCOUNT_NAME
+        storageAccountKey: $STORAGE_KEY
+  osType: Linux
+  restartPolicy: OnFailure
