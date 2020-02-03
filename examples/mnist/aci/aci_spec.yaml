@@ -1,9 +1,9 @@
 additional_properties: {}
 apiVersion: '2018-10-01'
-name: $(whoami)-gpucontainergroup
+name: $USER-gpucontainergroup
 properties:
   containers:
-  - name: $(whoami)-gpucontainer
+  - name: $USER-gpucontainer
     properties:
       image: imusinov/mnist
       command: ["/bin/bash", "-c", "cd /data && python -c 'mnist.py' |& /data/log.txt"]
