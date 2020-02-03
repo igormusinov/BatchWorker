@@ -10,11 +10,11 @@ properties:
       #command: ["/bin/bash", "-c", "sleep 10000"]
       resources:
         requests:
-          cpu: 1.0
+          cpu: 2.0
           memoryInGB: 16
-          gpu:
-            count: 1
-            sku: K80
+          #gpu:
+            #count: 1
+            #sku: K80
       volumeMounts:
         - mountPath: /data
           name: filesharevolume
