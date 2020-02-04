@@ -7,6 +7,8 @@ if test -f "$1.ipynb"; then
     azcopy cp "_aci_spec.yaml" "https://$ACI_PERS_STORAGE_ACCOUNT_NAME.file.core.windows.net/$ACI_PERS_SHARE_NAME/$(whoami)/mnist/_aci_spec.yaml?$SAS_TOKEN"
     azcopy cp "$1.py" "https://$ACI_PERS_STORAGE_ACCOUNT_NAME.file.core.windows.net/$ACI_PERS_SHARE_NAME/$(whoami)/mnist/$1.py?$SAS_TOKEN"
     az container create -g $ACI_PERS_RESOURCE_GROUP --file _aci_spec.yaml
-    azcopy cp "https://$ACI_PERS_STORAGE_ACCOUNT_NAME.file.core.windows.net/$ACI_PERS_SHARE_NAME/$(whoami)/mnist?$SAS_TOKEN" ./output --recursively
+    azcopy cp  "https://$ACI_PERS_STORAGE_ACCOUNT_NAME.file.core.windows.net/$ACI_PERS_SHARE_NAME/$(whoami)/mnist/*?$SAS_TOKEN" ./output --recursive=true
     az container delete -g $ACI_PERS_RESOURCE_GROUP -n $USER-gpucontainergroup -y
+else
+    echo "No $1.ipynb"
 fi
