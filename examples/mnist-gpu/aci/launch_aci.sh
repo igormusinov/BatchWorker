@@ -10,6 +10,7 @@ if test -f "$1.ipynb"; then
     azcopy cp "_aci_spec.yaml" "https://$ACI_PERS_STORAGE_ACCOUNT_NAME.file.core.windows.net/$ACI_PERS_SHARE_NAME/$EXPERIMENT_FOLDER/_aci_spec.yaml?$SAS_TOKEN"
     azcopy cp "$1.py" "https://$ACI_PERS_STORAGE_ACCOUNT_NAME.file.core.windows.net/$ACI_PERS_SHARE_NAME/$EXPERIMENT_FOLDER/$1.py?$SAS_TOKEN"
     az container create -g $ACI_PERS_RESOURCE_GROUP --file _aci_spec.yaml
+    az container logs --follow -g $ACI_PERS_RESOURCE_GROUP -n $RESOURCE_NAME
     azcopy cp  "https://$ACI_PERS_STORAGE_ACCOUNT_NAME.file.core.windows.net/$ACI_PERS_SHARE_NAME/$EXPERIMENT_FOLDER/*?$SAS_TOKEN" ./$EXPERIMENT_FOLDER --recursive=true
     az container delete -g $ACI_PERS_RESOURCE_GROUP -n $RESOURCE_NAME -y
 else
