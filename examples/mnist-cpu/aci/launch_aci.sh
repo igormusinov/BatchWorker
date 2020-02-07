@@ -2,6 +2,7 @@
 source /etc/azcreds/afscreds.sh
 # /etc/azcreds/azlogin.sh
 if test -f "$1.ipynb"; then
+    export PYSCRIPT=$1
     jupyter nbconvert --to script $1.ipynb
     export EXPERIMENT_FOLDER=$USER_CLUSTER_NAME-$(date +"%F-%H-%M-%S")
     export RESOURCE_NAME=$EXPERIMENT_FOLDER
