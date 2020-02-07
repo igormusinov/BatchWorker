@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: $RESOURCE_NAME
+spec:
+  template:
+    spec:
+      containers:
+      - name: $RESOURCE_NAME
+        image: tensorflow/tensorflow:1.12.0-gpu-py3
+        command: ["/bin/bash", "-c", "cd /data/$EXPERIMENT_FOLDER && python $PYSCRIPT.py |& tee log.txt"]
+        volumeMounts:
+          - name: azure
+            mountPath: /data
+        resources:
+          limits:
+            cpu: "1"
+            nvidia.com/gpu: 1           
+      restartPolicy: Never
+      volumes:
+      - name: azure
+        azureFile:
+          secretName: azure-secret-$USER_CLUSTER_NAME
+          shareName: $USER_CLUSTER_NAME
+          readOnly: false
+  backoffLimit: 4
