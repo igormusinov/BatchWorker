@@ -200,7 +200,7 @@ def slurm_run(script: Path, config: Path):
          f"{SLURM_ADDRESS}:{EXPERIMENT_FOLDER}/{config.name}", ])
     log, _ = console_command(
         ["sshpass", "-p", SLURM_PASS, "ssh", "-p", SLURM_PORT,
-         SLURM_ADDRESS, f'"{EXPERIMENT_FOLDER}/{config.name} {script.name}"'])
+         SLURM_ADDRESS, f'"cd {EXPERIMENT_FOLDER} && ./{config.name} {script.name} | tee log.txt"'])
 
     console_command(
         ["sshpass", "-p", SLURM_PASS, "scp", "-P", SLURM_PORT,
