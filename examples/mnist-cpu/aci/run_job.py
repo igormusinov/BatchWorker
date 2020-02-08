@@ -34,13 +34,12 @@ def proc_config(config: Path) -> (Path, dict):
     return _config, _config_spec
 
 
-
 def gen_tag(user: str) -> str:
     time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     return f"{user}-{time}-{str(uuid.uuid4())[:2]}"
 
 
-def console_command(cmd: list, timeout: int=10000, *args, **kwargs):
+def console_command(cmd: list, timeout: int = 10000, *args, **kwargs):
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
@@ -107,6 +106,14 @@ def aci_run(notebook: Path, config: Path):
          group_name, "-y"])
 
     return 0
+
+
+def aks_run():
+    pass
+
+
+def slurm_run():
+    pass
 
 
 def main():
