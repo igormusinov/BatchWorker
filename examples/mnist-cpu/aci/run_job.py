@@ -35,7 +35,8 @@ def export_azure_envs():
 def export_slurm_envs():
     global USER_CLUSTER_NAME
     global SLURM_ADDRESS
-    global PORT
+    global SLURM_PASS
+    global SLURM_PORT
 
     with open("/etc/slurmcreds/slurmcreds.sh", 'r') as f:
         envs = re.findall(r'(\w+)="(.*)"', f.read())
@@ -44,7 +45,8 @@ def export_slurm_envs():
 
     USER_CLUSTER_NAME = os.environ["USER_CLUSTER_NAME"]
     SLURM_ADDRESS = os.environ["SLURM_ADDRESS"]
-    PORT = os.environ["PORT"]
+    SLURM_PASS = os.environ["SLURM_PASS"]
+    SLURM_PORT = os.environ["SLURM_PORT"]
 
 
 def gen_tag(user: str) -> str:
