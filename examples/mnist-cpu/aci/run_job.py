@@ -1,13 +1,16 @@
 import os
-import re
-import uuid
-import yaml
 import logging
-import datetime
 import argparse
+from pathlib import Path
+
+import re
+import yaml
+from yaml import CLoader as Loader
+
+import uuid
 import datetime
 import subprocess
-from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +30,11 @@ def proc_config(config: Path) -> (Path, dict):
         for e in envs_list:
             r = re.compile(f'\${e}')
             data = re.sub(r, os.environ[e], data)
+
+    _config_spec = yaml.safe_load(data)
     _config = config.parent / f"_{config.name}"
-    _config_spec = yaml.dump(data)
     with open(_config, 'w') as f:
-        yaml.dump(data, f)
+        yaml.dump(_config_spec, f)
     return _config, _config_spec
 
 
