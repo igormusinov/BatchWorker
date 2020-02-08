@@ -5,14 +5,23 @@ from pathlib import Path
 
 import re
 import yaml
-from yaml import CLoader as Loader
 
 import uuid
 import datetime
 import subprocess
 
-
 logger = logging.getLogger(__name__)
+
+USER_CLUSTER_NAME = os.environ["USER_CLUSTER_NAME"]
+ACI_PERS_RESOURCE_GROUP = os.environ["ACI_PERS_RESOURCE_GROUP"]
+ACI_PERS_STORAGE_ACCOUNT_NAME = os.environ["ACI_PERS_STORAGE_ACCOUNT_NAME"]
+ACI_PERS_SHARE_NAME = os.environ["ACI_PERS_SHARE_NAME"]
+SAS_TOKEN = os.environ["SAS_TOKEN"]
+
+
+def gen_tag(user: str) -> str:
+    time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    return f"{user}-{time}-{str(uuid.uuid4())[:2]}"
 
 
 def check_file(path: Path) -> bool:
@@ -36,11 +45,6 @@ def proc_config(config: Path) -> (Path, dict):
     with open(_config, 'w') as f:
         yaml.dump(_config_spec, f)
     return _config, _config_spec
-
-
-def gen_tag(user: str) -> str:
-    time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    return f"{user}-{time}-{str(uuid.uuid4())[:2]}"
 
 
 def console_command(cmd: list, timeout: int = 10000, *args, **kwargs):
@@ -73,15 +77,9 @@ def aci_run(notebook: Path, config: Path):
     console_command(["jupyter", "nbconvert", "--to script", str(notebook)])
     script = notebook.parent / notebook.name.replace("ipynb", "py")
 
-    USER_CLUSTER_NAME = os.environ["USER_CLUSTER_NAME"]
-    ACI_PERS_RESOURCE_GROUP = os.environ["ACI_PERS_RESOURCE_GROUP"]
-    ACI_PERS_STORAGE_ACCOUNT_NAME = os.environ["ACI_PERS_STORAGE_ACCOUNT_NAME"]
-    ACI_PERS_SHARE_NAME = os.environ["ACI_PERS_SHARE_NAME"]
-    SAS_TOKEN = os.environ["SAS_TOKEN"]
     EXPERIMENT_FOLDER = gen_tag(USER_CLUSTER_NAME)
     os.environ["EXPERIMENT_FOLDER"] = EXPERIMENT_FOLDER
     os.environ["RESOURCE_NAME"] = EXPERIMENT_FOLDER
-
     _config, _config_spec = proc_config(config)
     group_name = f"{_config_spec['name']}"
 
@@ -91,7 +89,6 @@ def aci_run(notebook: Path, config: Path):
         EXPERIMENT_FOLDER,
         "{}",
         SAS_TOKEN)
-
     console_command(["azcopy", "cp", str(_config), STORAGE_URI.format(_config.name)])
     console_command(["azcopy", "cp", str(script), STORAGE_URI.format(script.name)])
 
@@ -105,9 +102,8 @@ def aci_run(notebook: Path, config: Path):
     console_command(["azcopy", "cp",
                      STORAGE_URI.format('*'), f"./{EXPERIMENT_FOLDER}",
                      "--recursive=true"])
-    console_command(
-        ["az", "container", "delete", "-g", ACI_PERS_RESOURCE_GROUP, "-n",
-         group_name, "-y"])
+    console_command(["az", "container", "delete", "-g", ACI_PERS_RESOURCE_GROUP, "-n",
+                     group_name, "-y"])
 
     return 0
 
