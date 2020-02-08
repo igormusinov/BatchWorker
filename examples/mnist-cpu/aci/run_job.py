@@ -1,5 +1,5 @@
 import os
-import sh
+import re
 import uuid
 import yaml
 import logging
@@ -12,7 +12,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def check_file(path):
+def check_file(path: Path) -> bool:
     if os.path.isfile(path):
         return True
     else:
@@ -20,20 +20,27 @@ def check_file(path):
         raise
 
 
-def proc_config(config: Path):
+def proc_config(config: Path) -> (Path, dict):
+    with open(config, 'r') as f:
+        data = f.read()
+        envs_list = re.findall(r'\$(\w+)', data)
+        for e in envs_list:
+            r = re.compile(f'\${e}')
+            data = re.sub(r, os.environ[e], data)
     _config = config.parent / f"_{config.name}"
-    sh.envsubst(sh.cat(str(config)), _out=str(_config))
-    with open(str(_config), 'r') as f:
-        _config_spec = yaml.load(f.read())
+    _config_spec = yaml.dump(data)
+    with open(_config, 'w') as f:
+        yaml.dump(data, f)
     return _config, _config_spec
 
 
-def gen_tag(user):
+
+def gen_tag(user: str) -> str:
     time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     return f"{user}-{time}-{str(uuid.uuid4())[:2]}"
 
 
-def console_command(cmd: list, timeout=10000, *args, **kwargs):
+def console_command(cmd: list, timeout: int=10000, *args, **kwargs):
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
