@@ -12,6 +12,10 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+with open("/etc/azcreds/afscreds.sh", 'r') as f:
+    envs = re.findall(r'(\w+)="(.*)"', f.read())
+    for e, v in envs:
+        os.environ[e] = v
 USER_CLUSTER_NAME = os.environ["USER_CLUSTER_NAME"]
 ACI_PERS_RESOURCE_GROUP = os.environ["ACI_PERS_RESOURCE_GROUP"]
 ACI_PERS_STORAGE_ACCOUNT_NAME = os.environ["ACI_PERS_STORAGE_ACCOUNT_NAME"]
