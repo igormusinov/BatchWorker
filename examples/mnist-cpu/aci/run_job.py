@@ -12,15 +12,39 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
-with open("/etc/azcreds/afscreds.sh", 'r') as f:
-    envs = re.findall(r'(\w+)="(.*)"', f.read())
-    for e, v in envs:
-        os.environ[e] = v
-USER_CLUSTER_NAME = os.environ["USER_CLUSTER_NAME"]
-ACI_PERS_RESOURCE_GROUP = os.environ["ACI_PERS_RESOURCE_GROUP"]
-ACI_PERS_STORAGE_ACCOUNT_NAME = os.environ["ACI_PERS_STORAGE_ACCOUNT_NAME"]
-ACI_PERS_SHARE_NAME = os.environ["ACI_PERS_SHARE_NAME"]
-SAS_TOKEN = os.environ["SAS_TOKEN"]
+
+def export_azure_envs():
+    global USER_CLUSTER_NAME
+    global ACI_PERS_RESOURCE_GROUP
+    global ACI_PERS_STORAGE_ACCOUNT_NAME
+    global ACI_PERS_SHARE_NAME
+    global SAS_TOKEN
+
+    with open("/etc/azcreds/afscreds.sh", 'r') as f:
+        envs = re.findall(r'(\w+)="(.*)"', f.read())
+        for e, v in envs:
+            os.environ[e] = v
+
+    USER_CLUSTER_NAME = os.environ["USER_CLUSTER_NAME"]
+    ACI_PERS_RESOURCE_GROUP = os.environ["ACI_PERS_RESOURCE_GROUP"]
+    ACI_PERS_STORAGE_ACCOUNT_NAME = os.environ["ACI_PERS_STORAGE_ACCOUNT_NAME"]
+    ACI_PERS_SHARE_NAME = os.environ["ACI_PERS_SHARE_NAME"]
+    SAS_TOKEN = os.environ["SAS_TOKEN"]
+
+
+def export_slurm_envs():
+    global USER_CLUSTER_NAME
+    global SLURM_ADDRESS
+    global PORT
+
+    with open("/etc/slurmcreds/slurmcreds.sh", 'r') as f:
+        envs = re.findall(r'(\w+)="(.*)"', f.read())
+        for e, v in envs:
+            os.environ[e] = v
+
+    USER_CLUSTER_NAME = os.environ["USER_CLUSTER_NAME"]
+    SLURM_ADDRESS = os.environ["SLURM_ADDRESS"]
+    PORT = os.environ["PORT"]
 
 
 def gen_tag(user: str) -> str:
@@ -75,6 +99,7 @@ def console_command(cmd: list, timeout: int = 10000, *args, **kwargs) -> (str, i
 
 
 def aci_run(script: Path, config: Path):
+    export_azure_envs()
     try:
         console_command(["az", "account", "show"])
     except Exception as exp:
@@ -114,6 +139,7 @@ def aci_run(script: Path, config: Path):
 
 
 def aks_run(script: Path, config: Path):
+    export_azure_envs()
     try:
         console_command(["az", "account", "show"])
     except Exception as exp:
@@ -157,8 +183,16 @@ def aks_run(script: Path, config: Path):
     return 0
 
 
-def slurm_run():
-    pass
+def slurm_run(script: Path, config: Path):
+    EXPERIMENT_FOLDER = gen_tag(USER_CLUSTER_NAME)
+    os.environ["EXPERIMENT_FOLDER"] = EXPERIMENT_FOLDER
+    os.environ["RESOURCE_NAME"] = EXPERIMENT_FOLDER
+    _config, _config_spec = proc_config(config)
+    job_name = f"{_config_spec['name']}"
+
+    console_command(
+        ["sshpass", "-p", SLURM_PASS, "scp", "-P", SLURM_PORT, str(script),
+         SLURM_ADDRESS, ])
 
 
 def main():
@@ -182,10 +216,13 @@ def main():
 
     if args.cluster == "ACI":
         aci_run(script, Path(args.config))
+    elif args.cluster == "AKS":
+        aks_run(script, Path(args.config))
+    elif args.cluster == "slurm":
+        slurm_run(script, Path(args.config))
     else:
         logging.error(f"Method {args.cluster} is not realised :(")
         raise
-        return 2
 
 
 if __name__ == '__main__':
