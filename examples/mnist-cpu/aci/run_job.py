@@ -188,9 +188,7 @@ def aks_run(script: Path, config: Path):
 def slurm_run(script: Path, config: Path):
     EXPERIMENT_FOLDER = gen_tag(USER_CLUSTER_NAME)
     os.environ["EXPERIMENT_FOLDER"] = EXPERIMENT_FOLDER
-    os.environ["RESOURCE_NAME"] = EXPERIMENT_FOLDER
     _config, _config_spec = proc_config(config)
-    job_name = f"{_config_spec['name']}"
 
     console_command(
         ["sshpass", "-p", SLURM_PASS, "scp", "-P", SLURM_PORT, str(script),
@@ -203,9 +201,9 @@ def slurm_run(script: Path, config: Path):
          SLURM_ADDRESS, f'"cd {EXPERIMENT_FOLDER} && ./{config.name} {script.name} | tee log.txt"'])
 
     console_command(
-        ["sshpass", "-p", SLURM_PASS, "scp", "-P", SLURM_PORT,
-         f"{SLURM_ADDRESS}:{EXPERIMENT_FOLDER}/*",
-         f"{EXPERIMENT_FOLDER}/*"])
+        ["sshpass", "-p", SLURM_PASS, "scp", "-r", "-P", SLURM_PORT,
+         f"{SLURM_ADDRESS}:{EXPERIMENT_FOLDER}",
+         f"{EXPERIMENT_FOLDER}"])
 
 
 def main():
@@ -231,7 +229,7 @@ def main():
         aci_run(script, Path(args.config))
     elif args.cluster == "AKS":
         aks_run(script, Path(args.config))
-    elif args.cluster == "slurm":
+    elif args.cluster == "SLURM":
         slurm_run(script, Path(args.config))
     else:
         logging.error(f"Method {args.cluster} is not realised :(")
