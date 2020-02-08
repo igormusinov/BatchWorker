@@ -51,7 +51,7 @@ def proc_config(config: Path) -> (Path, dict):
     return _config, _config_spec
 
 
-def console_command(cmd: list, timeout: int = 10000, *args, **kwargs):
+def console_command(cmd: list, timeout: int = 10000, *args, **kwargs) -> (str, int):
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
@@ -71,7 +71,7 @@ def console_command(cmd: list, timeout: int = 10000, *args, **kwargs):
                 log += output
                 print(output.strip())
             break
-    return log
+    return log, return_code
 
 
 def aci_run(script: Path, config: Path):
@@ -139,7 +139,7 @@ def aks_run(script: Path, config: Path):
     console_command(
         ["kubectl", "--kubeconfig=/etc/azcreds/kubeconfig.users", "apply", "-f",
          _config])
-    pod_name = console_command(
+    pod_name, _ = console_command(
         ["kubectl", "--kubeconfig=/etc/azcreds/kubeconfig.users", "get", "pods", "|"
                                                                                  "grep",
          job_name, "|", "awk", "'{print $1}'"])
